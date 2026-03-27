@@ -1,28 +1,16 @@
 from flask import Flask, request, jsonify
-import os
 import psycopg2
 
 app = Flask(__name__)
 
-
 def get_connection():
-    """Create and return a new database connection using environment variables.
-
-    Expected environment variables (set these in Render and locally):
-    - DB_HOST
-    - DB_NAME
-    - DB_USER
-    - DB_PASSWORD
-    - DB_PORT (optional, defaults to 5432)
-    """
-
     return psycopg2.connect(
-        host=os.environ.get("DB_HOST"),
-        database=os.environ.get("DB_NAME"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        port=os.environ.get("DB_PORT", "5432"),
-        sslmode="require",
+        host="ep-morning-fog-a4uzpxwr.us-east-1.aws.neon.tech",
+        database="neondb",
+        user="neondb_owner",
+        password="npg_tTQ2cyP5SluG",
+        port="5432",
+        sslmode="require"
     )
 
 @app.route('/api/iot', methods=['POST'])
@@ -32,9 +20,9 @@ def receive_data():
         print("Incoming:", data)
 
         email = data.get("email")
-        moisture = data.get("moisture")
-        ph = data.get("ph")
-        temperature = data.get("temperature")
+        moisture = int(data.get("moisture"))
+        ph = float(data.get("ph"))
+        temperature = int(data.get("temperature"))
 
         conn = get_connection()
         cur = conn.cursor()
@@ -45,15 +33,15 @@ def receive_data():
         """, (email, moisture, ph, temperature))
 
         conn.commit()
+
         cur.close()
-        conn.close()   # 🔥 VERY IMPORTANT
+        conn.close()
 
         return jsonify({"status": "success"})
 
     except Exception as e:
-        print("ERROR:", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print("🔥 ERROR:", e)
+        return jsonify({"status": "error"}), 200   # ⚠️ IMPORTANT CHANGE
+
 if __name__ == "__main__":
-    # Render provides PORT as an environment variable
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
