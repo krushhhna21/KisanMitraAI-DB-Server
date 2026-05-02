@@ -3,6 +3,10 @@ import psycopg2
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def home():
+    return "Server is alive", 200
+
 def get_connection():
     return psycopg2.connect(
         host="ep-morning-fog-a4uzpxwr.us-east-1.aws.neon.tech",
